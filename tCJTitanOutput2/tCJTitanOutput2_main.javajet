@@ -1,0 +1,153 @@
+<%@ jet
+	imports="
+		org.talend.core.model.process.INode
+		org.talend.core.model.process.ElementParameterParser
+		org.talend.core.model.metadata.IMetadataTable
+		org.talend.core.model.metadata.IMetadataColumn
+		org.talend.core.model.process.IConnection
+		org.talend.core.model.process.IConnectionCategory
+		org.talend.designer.codegen.config.CodeGeneratorArgument
+		org.talend.core.model.metadata.types.JavaTypesManager
+		org.talend.core.model.metadata.types.JavaType
+
+		org.talend.designer.neo4j.data.Neo4jData
+		org.talend.designer.neo4j.data.Index
+		org.talend.designer.neo4j.data.Relationship
+		org.talend.designer.neo4j.ui.editor.MetadataColumnExt
+
+		java.util.List
+		java.util.ArrayList
+		java.util.HashMap
+    	java.util.Map
+	"
+%>
+	//@CJTITAN - Main
+<%
+    CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+    final INode node = (INode)codeGenArgument.getArgument();
+    final String cid = node.getUniqueName();
+    final String dataAction = ElementParameterParser.getValue(node, "__DATA_ACTION__");
+    String commitEvery = ElementParameterParser.getValue(node, "__COMMIT_EVERY__");
+    boolean batchImport = "true".equalsIgnoreCase(ElementParameterParser.getValue(node, "__BATCH_IMPORT__"));
+
+    List<IMetadataColumn> columnList = null;
+    List<IMetadataTable> metadatas = node.getMetadataList();
+
+    if (metadatas != null && metadatas.size() > 0) {
+    	IMetadataTable metadata = metadatas.get(0);
+    	if (metadata != null) {
+    		columnList = metadata.getListColumns();
+    	}
+    }
+
+    List<? extends IConnection> inputs = node.getIncomingConnections();
+    List<? extends IConnection> outputs = node.getOutgoingSortedConnections();
+    String incomingConnName = null;
+    String outgoingConnName = null;
+
+    if (inputs.size() > 0) {
+    	IConnection in = inputs.get(0);
+    	incomingConnName = in.getName();
+    }
+
+    if (outputs.size() > 0) {
+    	IConnection out = outputs.get(0);
+    	outgoingConnName = out.getName();
+    }
+    for (IMetadataColumn column : columnList) {
+	    if (outgoingConnName != null) {
+	    	%>
+	    	<%=outgoingConnName%>.<%=column%> = <%=incomingConnName%>.<%=column%>;
+	    	<%
+		}
+    }
+
+    class CJTitanUtils {
+
+		private List<IMetadataColumn> columnList;
+		private String incomingConnName;
+
+		public CJTitanUtils(String incomingConnName, List<IMetadataColumn> columnList) {
+			this.incomingConnName = incomingConnName;
+			this.columnList = columnList;
+		}
+
+		public void generateNodeInsert() {
+			%>
+			// Add vertex and maintain memory mapping
+			com.tinkerpop.blueprints.Vertex node_<%=cid%> = bgraph_<%=cid%>.addVertex(null);
+
+			<%
+			generateNode();
+		}
+
+
+		public void generateNodeInsertOrUpdate() {
+		    // This index is the one to retrieve nodes for InsertOrUpdate
+			String indexName = ElementParameterParser.getValue(node, "__INDEX_NAME__");
+			String indexKey = ElementParameterParser.getValue(node, "__INDEX_KEY__");
+			String indexColumnValue = ElementParameterParser.getValue(node, "__INDEX_VALUE__");
+			%>
+
+			// Use the index to retrieve the nodes
+			com.tinkerpop.blueprints.Vertex node_<%=cid%> = null;
+			java.util.Iterator<com.tinkerpop.blueprints.Vertex> iterator = databaseService_<%=cid%>.getVertices(<%=indexKey%>, <%=incomingConnName%>.<%=indexColumnValue%>).iterator();
+			if (iterator.hasNext()) {
+			    node_<%=cid%> = (com.tinkerpop.blueprints.Vertex) iterator.next();
+			} else {
+		        // Create the node
+				node_<%=cid%> = databaseService_<%=cid%>.addVertex(null);
+			}
+
+			<%
+			generateNode();
+		}
+
+	    private void generateNode() {
+    		for (IMetadataColumn column : columnList) {
+    	    	if (column instanceof MetadataColumnExt) {
+    	    		MetadataColumnExt columnExt = (MetadataColumnExt) column;
+    	    		Neo4jData data = columnExt.getData();
+
+    	    		generateNodePropertyInsert(column);
+
+    	    	}
+    	    }
+    	}
+
+    	private void generateNodePropertyInsert(IMetadataColumn column) {
+    		if (column.getTalendType().equals("id_Date")) {
+        		%>
+        		if (<%=incomingConnName%>.<%=column%> != null) {
+        			java.util.Date date_<%=cid%> = (java.util.Date) <%=incomingConnName%>.<%=column%>;
+        			node_<%=cid%>.setProperty("<%=column%>", date_<%=cid%>.getTime());
+        		}
+        		<%
+    		} else {
+    	    	if (column.isNullable()) {
+    		    	%>
+    	    		if (<%=incomingConnName%>.<%=column%> != null) {
+    	    			node_<%=cid%>.setProperty("<%=column%>", <%=incomingConnName%>.<%=column%>);
+    	    		}
+    		    	<%
+    	    	} else {
+    		    	%>
+    	    		node_<%=cid%>.setProperty("<%=column%>", <%=incomingConnName%>.<%=column%>);
+        			<%
+    	    	}
+    	    }
+    	}
+    }
+
+    // @CJ - All those are template functions.
+    CJTitanUtils cJTitanUtils = new CJTitanUtils(incomingConnName, columnList);
+    if (dataAction.equals("INSERT")) {
+	    cJTitanUtils.generateNodeInsert();
+	} else if (dataAction.equals("INSERT_OR_UPDATE")) {
+	    cJTitanUtils.generateNodeInsertOrUpdate();
+	}
+
+%>
+
+counter_<%=cid%>++;
+nb_line_<%=cid %>++;

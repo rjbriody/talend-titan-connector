@@ -1,0 +1,100 @@
+<%@ jet
+	imports="
+		org.talend.core.model.process.INode
+		org.talend.core.model.process.ElementParameterParser
+		org.talend.core.model.metadata.IMetadataTable
+		org.talend.core.model.metadata.IMetadataColumn
+		org.talend.core.model.process.IConnection
+		org.talend.core.model.process.IConnectionCategory
+		org.talend.designer.codegen.config.CodeGeneratorArgument
+		org.talend.core.model.metadata.types.JavaTypesManager
+		org.talend.core.model.metadata.types.JavaType
+		java.util.List
+    	java.util.Map
+	"
+%>
+<%
+    CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
+    INode node = (INode)codeGenArgument.getArgument();
+    String cid = node.getUniqueName();
+
+    boolean useExistingConnection = "true".equalsIgnoreCase(ElementParameterParser.getValue(node, "__USE_EXISTING_CONNECTION__"));
+    boolean batchImport = "true".equalsIgnoreCase(ElementParameterParser.getValue(node, "__BATCH_IMPORT__"));
+
+    if (useExistingConnection) {
+    	String connection = ElementParameterParser.getValue(node, "__CONNECTION__");
+    	String dbconn = "dbService_" + connection;
+    	%>
+		com.thinkaurelius.titan.core.TitanGraph databaseService_<%=cid%> = (com.thinkaurelius.titan.core.TitanGraph) globalMap.get("<%=dbconn%>");
+    	<%
+    } else {
+    	boolean remoteServer = "true".equalsIgnoreCase(ElementParameterParser.getValue(node, "__REMOTE_SERVER__"));
+    	if (remoteServer) {
+    		String serverUrl = ElementParameterParser.getValue(node, "__SERVER_URL__");
+    		%>
+    		org.apache.commons.configuration.Configuration conf = new org.apache.commons.configuration.BaseConfiguration();
+        	conf.setProperty("storage.backend", "embeddedcassandra");
+        	com.thinkaurelius.titan.core.TitanGraph databaseService_<%=cid%> = com.thinkaurelius.titan.core.TitanFactory.open(conf);
+
+    		<%
+    	} else {
+	    	String databasePath = ElementParameterParser.getValue(node, "__DATABASE_PATH__");
+			%>
+			org.apache.commons.configuration.Configuration conf = new org.apache.commons.configuration.BaseConfiguration();
+        	conf.setProperty("storage.backend", "embeddedcassandra");
+        	com.thinkaurelius.titan.core.TitanGraph databaseService_<%=cid%> = com.thinkaurelius.titan.core.TitanFactory.open(conf);
+
+			<%
+		}
+    }
+
+    String startIndexName = ElementParameterParser.getValue(node, "__START_INDEX_NAME__");
+    String endIndexName = ElementParameterParser.getValue(node, "__END_INDEX_NAME__");
+
+    String relationshipType = ElementParameterParser.getValue(node, "__RELATIONSHIP_TYPE__");
+    if (batchImport) {
+
+		// Titan Specific
+		String enableBatchLoading = ElementParameterParser.getValue(node, "__ENABLE_BATCH_LOADING__");
+		String storageBufferSize = ElementParameterParser.getValue(node, "__STORAGE_BUFFER_SIZE__");
+		String storageReadAttempts = ElementParameterParser.getValue(node, "__STORAGE_READ_ATTEMPTS__");
+		String storageWriteAttempts = ElementParameterParser.getValue(node, "__STORAGE_WRITE_ATTEMPTS__");
+
+    	%>
+    	/*
+    	java.util.Map<String, String> importProperties_<%=cid%> = new java.util.HashMap<String, String>();
+		importProperties_<%=cid%>.put("storage.batch-loading", <%=enableBatchLoading%>);
+		importProperties_<%=cid%>.put("storage.buffer-size", <%=storageBufferSize%>);
+		importProperties_<%=cid%>.put("storage.read-attempts", <%=storageReadAttempts%>);
+		importProperties_<%=cid%>.put("storage.write-attempts", <%=storageWriteAttempts%>);
+	    */
+
+		com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph inserter_<%=cid%> = null;
+		if (databaseService_<%=cid%> instanceof com.thinkaurelius.titan.core.TitanGraph) {
+			com.thinkaurelius.titan.core.TitanGraph db_<%=cid%> = (com.thinkaurelius.titan.core.TitanGraph) databaseService_<%=cid%>;
+			//db_<%=cid%>.shutdown();
+			inserter_<%=cid%> = com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph(/* the graph */ db_<%=cid%>, /* id type */ VertexIDType.STRING, /* batchsize */ 1000);
+		}
+		<%
+	} else {
+    	%>
+    	
+    	<%
+    }
+    %>
+    
+    // Create the Edge label if it does not exist
+    com.thinkaurelius.titan.core.TitanType relationshipType_<%=cid%> = databaseService_<%=cid%>.getType(<%=relationshipType%>);
+    if (relationshipType_<%=cid%> == null) {
+        relationshipType_<%=cid%> = (com.thinkaurelius.titan.core.TitanLabel) databaseService_<%=cid%>.makeType().name(<%=relationshipType%>).makeEdgeLabel();
+    } else {
+        if (!relationshipType_<%=cid%>.isEdgeLabel()) {
+            throw new Exception("Can not create EdgeLabel with name : " + <%=relationshipType%>);
+        }
+        // Cast
+        relationshipType_<%=cid%> = (com.thinkaurelius.titan.core.TitanLabel) relationshipType_<%=cid%>;
+    }
+    
+    
+	int nb_line_<%=cid %> = 0;
+	long counter_<%=cid%> = 0;

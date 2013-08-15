@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<COMPONENT>
+  <HEADER AUTHOR="Antoine Perrin" COMPATIBILITY="ALL" DATA_AUTO_PROPAGATE="false" PLATEFORM="ALL" RELEASE_DATE="20080229A" SERIAL="" STARTABLE="true" STATUS="ALPHA" VERSION="0.102">
+    <SIGNATURE/>
+  </HEADER>
+  <FAMILIES>
+    <FAMILY>Databases/Titan</FAMILY>
+	<FAMILY>Big Data/Titan</FAMILY>
+  </FAMILIES>
+  <!-- ls target/dependency | awk '/jar/ {print "<IMPORT MODULE=\""$9".jar\" NAME=\""$9"\" REQUIRED=\"true\"/>"}' | pbcopy -->
+  <DOCUMENTATION>
+    <URL/>
+  </DOCUMENTATION>
+  <CONNECTORS>
+  	<CONNECTOR CTYPE="SUBJOB_OK" MAX_INPUT="1" MAX_OUTPUT="1" MIN_INPUT="0" MIN_OUTPUT="0"/>
+  	<CONNECTOR CTYPE="SUBJOB_ERROR" MAX_INPUT="1" MAX_OUTPUT="1" MIN_INPUT="0" MIN_OUTPUT="0"/>
+  	<CONNECTOR CTYPE="COMPONENT_OK" MAX_INPUT="1" MAX_OUTPUT="1" MIN_INPUT="0" MIN_OUTPUT="0"/>
+  	<CONNECTOR CTYPE="COMPONENT_ERROR" MAX_INPUT="0" MAX_OUTPUT="1" MIN_INPUT="0" MIN_OUTPUT="0"/>
+    <CONNECTOR CTYPE="FLOW" MAX_INPUT="0" MAX_OUTPUT="0" MIN_INPUT="0" MIN_OUTPUT="0"/>
+  </CONNECTORS>
+  <PARAMETERS>
+    <PARAMETER NAME="REMOTE_SERVER" FIELD="CHECK" NUM_ROW="1" GROUP="CONNECTION_GROUP">
+	  <DEFAULT>false</DEFAULT>
+	</PARAMETER>
+	<PARAMETER NAME="SERVER_URL" FIELD="TEXT" REQUIRED="true" NUM_ROW="2" SHOW_IF="REMOTE_SERVER == 'true'" GROUP="CONNECTION_GROUP">
+	  <DEFAULT>"http://localhost:8182/db/data"</DEFAULT>
+	</PARAMETER>
+	<PARAMETER NAME="CASSANDRA_CONFIG_DIR" FIELD="TEXT" REQUIRED="true" NUM_ROW="3" SHOW_IF="REMOTE_SERVER == 'false'" GROUP="CONNECTION_GROUP">
+	  <DEFAULT>"./config/cassandra.yaml"</DEFAULT>
+	</PARAMETER>
+  </PARAMETERS>
+  <ADVANCED_PARAMETERS>
+    <PARAMETER NAME="BATCH_IMPORT" FIELD="CHECK" NUM_ROW="1" GROUP="BATCH_OPTION">
+    	<DEFAULT>false</DEFAULT>
+    </PARAMETER>
+  </ADVANCED_PARAMETERS>
+  <CODEGENERATION>
+    <IMPORTS>
+        <IMPORT MODULE="activation-1.1.jar" NAME="activation-1.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="antlr-2.7.7.jar" NAME="antlr-2.7.7.jar" REQUIRED="true"/>
+        <IMPORT MODULE="antlr-3.2.jar" NAME="antlr-3.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="antlr-runtime-3.2.jar" NAME="antlr-runtime-3.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="asm-3.1.jar" NAME="asm-3.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="asm-4.0.jar" NAME="asm-4.0.jar" REQUIRED="true"/>
+        <IMPORT MODULE="asm-analysis-3.2.jar" NAME="asm-analysis-3.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="asm-commons-3.2.jar" NAME="asm-commons-3.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="asm-tree-3.2.jar" NAME="asm-tree-3.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="asm-util-3.2.jar" NAME="asm-util-3.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="astyanax-cassandra-1.56.37.jar" NAME="astyanax-cassandra-1.56.37.jar" REQUIRED="true"/>
+        <IMPORT MODULE="astyanax-core-1.56.37.jar" NAME="astyanax-core-1.56.37.jar" REQUIRED="true"/>
+        <IMPORT MODULE="astyanax-thrift-1.56.37.jar" NAME="astyanax-thrift-1.56.37.jar" REQUIRED="true"/>
+        <IMPORT MODULE="avro-1.4.0-cassandra-1.jar" NAME="avro-1.4.0-cassandra-1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="blueprints-core-2.3.0.jar" NAME="blueprints-core-2.3.0.jar" REQUIRED="true"/>
+        <IMPORT MODULE="cassandra-all-1.2.2.jar" NAME="cassandra-all-1.2.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="cassandra-thrift-1.2.2.jar" NAME="cassandra-thrift-1.2.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="colt-1.2.0.jar" NAME="colt-1.2.0.jar" REQUIRED="true"/>
+        <IMPORT MODULE="commons-beanutils-1.7.0.jar" NAME="commons-beanutils-1.7.0.jar" REQUIRED="true"/>
+        <IMPORT MODULE="commons-beanutils-core-1.8.0.jar" NAME="commons-beanutils-core-1.8.0.jar" REQUIRED="true"/>
+        <IMPORT MODULE="commons-cli-1.1.jar" NAME="commons-cli-1.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="commons-codec-1.7.jar" NAME="commons-codec-1.7.jar" REQUIRED="true"/>
+        <IMPORT MODULE="commons-collections-3.2.1.jar" NAME="commons-collections-3.2.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="commons-configuration-1.6.jar" NAME="commons-configuration-1.6.jar" REQUIRED="true"/>
+        <IMPORT MODULE="commons-digester-1.8.jar" NAME="commons-digester-1.8.jar" REQUIRED="true"/>
+        <IMPORT MODULE="commons-io-2.0.1.jar" NAME="commons-io-2.0.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="commons-lang-2.4.jar" NAME="commons-lang-2.4.jar" REQUIRED="true"/>
+        <IMPORT MODULE="commons-logging-1.1.1.jar" NAME="commons-logging-1.1.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="commons-pool-1.5.5.jar" NAME="commons-pool-1.5.5.jar" REQUIRED="true"/>
+        <IMPORT MODULE="compress-lzf-0.8.4.jar" NAME="compress-lzf-0.8.4.jar" REQUIRED="true"/>
+        <IMPORT MODULE="concurrent-1.3.4.jar" NAME="concurrent-1.3.4.jar" REQUIRED="true"/>
+        <IMPORT MODULE="concurrentlinkedhashmap-lru-1.3.jar" NAME="concurrentlinkedhashmap-lru-1.3.jar" REQUIRED="true"/>
+        <IMPORT MODULE="elasticsearch-0.90.0.jar" NAME="elasticsearch-0.90.0.jar" REQUIRED="true"/>
+        <IMPORT MODULE="frames-2.3.0.jar" NAME="frames-2.3.0.jar" REQUIRED="true"/>
+        <IMPORT MODULE="gmbal-3.2.0-b003.jar" NAME="gmbal-3.2.0-b003.jar" REQUIRED="true"/>
+        <IMPORT MODULE="gremlin-groovy-2.3.0.jar" NAME="gremlin-groovy-2.3.0.jar" REQUIRED="true"/>
+        <IMPORT MODULE="gremlin-java-2.3.0.jar" NAME="gremlin-java-2.3.0.jar" REQUIRED="true"/>
+        <IMPORT MODULE="grizzly-core-2.2.16.jar" NAME="grizzly-core-2.2.16.jar" REQUIRED="true"/>
+        <IMPORT MODULE="grizzly-framework-2.2.16.jar" NAME="grizzly-framework-2.2.16.jar" REQUIRED="true"/>
+        <IMPORT MODULE="grizzly-http-2.2.16.jar" NAME="grizzly-http-2.2.16.jar" REQUIRED="true"/>
+        <IMPORT MODULE="grizzly-http-server-2.2.16.jar" NAME="grizzly-http-server-2.2.16.jar" REQUIRED="true"/>
+        <IMPORT MODULE="grizzly-http-servlet-2.2.16.jar" NAME="grizzly-http-servlet-2.2.16.jar" REQUIRED="true"/>
+        <IMPORT MODULE="grizzly-portunif-2.2.16.jar" NAME="grizzly-portunif-2.2.16.jar" REQUIRED="true"/>
+        <IMPORT MODULE="grizzly-rcm-2.2.16.jar" NAME="grizzly-rcm-2.2.16.jar" REQUIRED="true"/>
+        <IMPORT MODULE="groovy-1.8.9.jar" NAME="groovy-1.8.9.jar" REQUIRED="true"/>
+        <IMPORT MODULE="guava-13.0.1.jar" NAME="guava-13.0.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="high-scale-lib-1.1.2.jar" NAME="high-scale-lib-1.1.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="hppc-0.4.2.jar" NAME="hppc-0.4.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="httpclient-4.0.1.jar" NAME="httpclient-4.0.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="httpcore-4.0.1.jar" NAME="httpcore-4.0.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jackson-annotations-2.1.1.jar" NAME="jackson-annotations-2.1.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jackson-core-2.1.2.jar" NAME="jackson-core-2.1.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jackson-core-asl-1.9.2.jar" NAME="jackson-core-asl-1.9.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jackson-databind-2.1.2.jar" NAME="jackson-databind-2.1.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jackson-datatype-json-org-2.1.2.jar" NAME="jackson-datatype-json-org-2.1.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jackson-jaxrs-1.9.2.jar" NAME="jackson-jaxrs-1.9.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jackson-mapper-asl-1.9.2.jar" NAME="jackson-mapper-asl-1.9.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jackson-xc-1.9.2.jar" NAME="jackson-xc-1.9.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jamm-0.2.5.jar" NAME="jamm-0.2.5.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jansi-1.5.jar" NAME="jansi-1.5.jar" REQUIRED="true"/>
+        <IMPORT MODULE="javassist-3.15.0-GA.jar" NAME="javassist-3.15.0-GA.jar" REQUIRED="true"/>
+        <IMPORT MODULE="javax.servlet-api-3.0.1.jar" NAME="javax.servlet-api-3.0.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jaxb-api-2.2.2.jar" NAME="jaxb-api-2.2.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jaxb-impl-2.2.3-1.jar" NAME="jaxb-impl-2.2.3-1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jbcrypt-0.3m.jar" NAME="jbcrypt-0.3m.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jersey-client-1.17.jar" NAME="jersey-client-1.17.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jersey-core-1.17.jar" NAME="jersey-core-1.17.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jersey-grizzly2-1.17.jar" NAME="jersey-grizzly2-1.17.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jersey-json-1.17.jar" NAME="jersey-json-1.17.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jersey-server-1.17.jar" NAME="jersey-server-1.17.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jersey-servlet-1.17.jar" NAME="jersey-servlet-1.17.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jettison-1.2.jar" NAME="jettison-1.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jetty-6.1.22.jar" NAME="jetty-6.1.22.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jetty-util-6.1.22.jar" NAME="jetty-util-6.1.22.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jline-1.0.jar" NAME="jline-1.0.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jna-3.2.7.jar" NAME="jna-3.2.7.jar" REQUIRED="true"/>
+        <IMPORT MODULE="joda-time-1.6.2.jar" NAME="joda-time-1.6.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="json-20090211.jar" NAME="json-20090211.jar" REQUIRED="true"/>
+        <IMPORT MODULE="json-simple-1.1.jar" NAME="json-simple-1.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="jsr305-1.3.9.jar" NAME="jsr305-1.3.9.jar" REQUIRED="true"/>
+        <IMPORT MODULE="kryo-2.21.jar" NAME="kryo-2.21.jar" REQUIRED="true"/>
+        <IMPORT MODULE="libthrift-0.7.0.jar" NAME="libthrift-0.7.0.jar" REQUIRED="true"/>
+        <IMPORT MODULE="log4j-1.2.16.jar" NAME="log4j-1.2.16.jar" REQUIRED="true"/>
+        <IMPORT MODULE="lucene-analyzers-common-4.2.1.jar" NAME="lucene-analyzers-common-4.2.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="lucene-codecs-4.2.1.jar" NAME="lucene-codecs-4.2.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="lucene-core-4.2.1.jar" NAME="lucene-core-4.2.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="lucene-grouping-4.2.1.jar" NAME="lucene-grouping-4.2.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="lucene-highlighter-4.2.1.jar" NAME="lucene-highlighter-4.2.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="lucene-join-4.2.1.jar" NAME="lucene-join-4.2.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="lucene-memory-4.2.1.jar" NAME="lucene-memory-4.2.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="lucene-queries-4.2.1.jar" NAME="lucene-queries-4.2.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="lucene-queryparser-4.2.1.jar" NAME="lucene-queryparser-4.2.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="lucene-sandbox-4.2.1.jar" NAME="lucene-sandbox-4.2.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="lucene-spatial-4.2.1.jar" NAME="lucene-spatial-4.2.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="lucene-suggest-4.2.1.jar" NAME="lucene-suggest-4.2.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="lz4-1.1.0.jar" NAME="lz4-1.1.0.jar" REQUIRED="true"/>
+        <IMPORT MODULE="management-api-3.0.0-b012.jar" NAME="management-api-3.0.0-b012.jar" REQUIRED="true"/>
+        <IMPORT MODULE="metrics-core-2.0.3.jar" NAME="metrics-core-2.0.3.jar" REQUIRED="true"/>
+        <IMPORT MODULE="minlog-1.2.jar" NAME="minlog-1.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="msgpack-0.6.5.jar" NAME="msgpack-0.6.5.jar" REQUIRED="true"/>
+        <IMPORT MODULE="netty-3.2.7.Final.jar" NAME="netty-3.2.7.Final.jar" REQUIRED="true"/>
+        <IMPORT MODULE="objenesis-1.2.jar" NAME="objenesis-1.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="org.apache.servicemix.bundles.commons-csv-1.0-r706900_3.jar" NAME="org.apache.servicemix.bundles.commons-csv-1.0-r706900_3.jar" REQUIRED="true"/>
+        <IMPORT MODULE="pfl-asm-1.0.0-b001.jar" NAME="pfl-asm-1.0.0-b001.jar" REQUIRED="true"/>
+        <IMPORT MODULE="pfl-basic-1.0.0-b001.jar" NAME="pfl-basic-1.0.0-b001.jar" REQUIRED="true"/>
+        <IMPORT MODULE="pfl-basic-tools-1.0.0-b001.jar" NAME="pfl-basic-tools-1.0.0-b001.jar" REQUIRED="true"/>
+        <IMPORT MODULE="pfl-tf-1.0.0-b001.jar" NAME="pfl-tf-1.0.0-b001.jar" REQUIRED="true"/>
+        <IMPORT MODULE="pfl-tf-tools-1.0.0-b001.jar" NAME="pfl-tf-tools-1.0.0-b001.jar" REQUIRED="true"/>
+        <IMPORT MODULE="pipes-2.3.0.jar" NAME="pipes-2.3.0.jar" REQUIRED="true"/>
+        <IMPORT MODULE="reflectasm-1.07-shaded.jar" NAME="reflectasm-1.07-shaded.jar" REQUIRED="true"/>
+        <IMPORT MODULE="rexster-core-2.3.0.jar" NAME="rexster-core-2.3.0.jar" REQUIRED="true"/>
+        <IMPORT MODULE="rexster-protocol-2.3.0.jar" NAME="rexster-protocol-2.3.0.jar" REQUIRED="true"/>
+        <IMPORT MODULE="rexster-server-2.3.0.jar" NAME="rexster-server-2.3.0.jar" REQUIRED="true"/>
+        <IMPORT MODULE="servlet-api-2.5-20081211.jar" NAME="servlet-api-2.5-20081211.jar" REQUIRED="true"/>
+        <IMPORT MODULE="servlet-api-2.5.jar" NAME="servlet-api-2.5.jar" REQUIRED="true"/>
+        <IMPORT MODULE="slf4j-api-1.6.1.jar" NAME="slf4j-api-1.6.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="slf4j-log4j12-1.6.1.jar" NAME="slf4j-log4j12-1.6.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="snakeyaml-1.6.jar" NAME="snakeyaml-1.6.jar" REQUIRED="true"/>
+        <IMPORT MODULE="snappy-java-1.0.5-M3.jar" NAME="snappy-java-1.0.5-M3.jar" REQUIRED="true"/>
+        <IMPORT MODULE="snaptree-0.1.jar" NAME="snaptree-0.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="spatial4j-0.3.jar" NAME="spatial4j-0.3.jar" REQUIRED="true"/>
+        <IMPORT MODULE="stax-api-1.0-2.jar" NAME="stax-api-1.0-2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="stax-api-1.0.1.jar" NAME="stax-api-1.0.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="stringtemplate-3.2.jar" NAME="stringtemplate-3.2.jar" REQUIRED="true"/>
+        <IMPORT MODULE="titan-cassandra-0.3.1.jar" NAME="titan-cassandra-0.3.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="titan-core-0.3.1.jar" NAME="titan-core-0.3.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="titan-es-0.3.1.jar" NAME="titan-es-0.3.1.jar" REQUIRED="true"/>
+        <IMPORT MODULE="uuid-3.2.jar" NAME="uuid-3.2.jar" REQUIRED="true"/>
+    </IMPORTS>
+  </CODEGENERATION>
+  <RETURNS>
+  </RETURNS>
+</COMPONENT>
