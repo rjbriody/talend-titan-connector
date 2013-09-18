@@ -102,18 +102,18 @@
 	} else {
 		%>
 		java.util.Map<String, com.tinkerpop.blueprints.Index<com.tinkerpop.blueprints.Vertex>> indexNodeMap_<%=cid%> = new java.util.HashMap<String, com.tinkerpop.blueprints.Index<com.tinkerpop.blueprints.Vertex>>();
-		<%
-	    for (String indexName : indexNames) {
-	        String indexNameCode = indexName.replaceAll("^\"|\"$", "");
 
-	    	%>
-	    	// Creates the indexes
-	    	// index() returns the index manager
-	    	// forNodes(String name) creates + retrieves the index called "name"
-	    	//indexNodeMap_<%=cid%>.put(<%=indexName%>, databaseService_<%=cid%>.index().forNodes(<%=indexName%>));
+        // Retrieves the indexes for the Vertex element
+    	java.util.Set<String> indexes = ((com.tinkerpop.blueprints.KeyIndexableGraph) databaseService_<%=cid%>).getIndexedKeys(com.tinkerpop.blueprints.Vertex.class);
+        <%
+        for (String indexName : indexNames) {
+            String indexNameCode = indexName.replaceAll("^\"|\"$", "");
 
-            // Retrieves the indexes for the Vertex element
-	    	java.util.Set<String> indexes = ((com.tinkerpop.blueprints.KeyIndexableGraph) databaseService_<%=cid%>).getIndexedKeys(com.tinkerpop.blueprints.Vertex.class);
+            %>
+            // Creates the indexes
+            // index() returns the index manager
+            // forNodes(String name) creates + retrieves the index called "name"
+            //indexNodeMap_<%=cid%>.put(<%=indexName%>, databaseService_<%=cid%>.index().forNodes(<%=indexName%>));
 	    	// Test if it exists
 	    	if (!indexes.contains(<%=indexName%>)) {
 	    	    // If not create it
