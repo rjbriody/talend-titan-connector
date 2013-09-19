@@ -38,7 +38,9 @@
 	System.out.println("Working Directory = " + System.getProperty("user.dir"));
 
 	org.apache.commons.configuration.Configuration conf = new org.apache.commons.configuration.BaseConfiguration();
-	conf.setProperty("storage.backend", "embeddedcassandra");
+	//conf.setProperty("storage.backend", "embeddedcassandra");
+	conf.setProperty("storage.backend", "cassandra");
+	conf.setProperty("storage.hostname","127.0.0.1");
 
     //conf.setProperty("storage.cassandra-config-dir", <%=cassandraConfigDir%>);
 
