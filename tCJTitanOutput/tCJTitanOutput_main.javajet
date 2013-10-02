@@ -110,6 +110,11 @@
 
     	    		generateNodePropertyInsert(column);
 
+                    // Create relationships
+                    for (Relationship relationship : data.getRelationships()) {
+                        generateRelationshipCreation(relationship, column);
+                    }
+
     	    	}
     	    }
     	}
@@ -136,6 +141,74 @@
     	    	}
     	    }
     	}
+
+        private void generateRelationshipCreation(Relationship relationship, IMetadataColumn column) {
+            %>
+            {
+                java.util.Map<String, com.tinkerpop.blueprints.Vertex> endNode_<%=cid%> = new java.util.HashMap<String,com.tinkerpop.blueprints.Vertex>();
+                <%
+                if (relationship.getIndex().getValue() != null && !relationship.getIndex().getValue().isEmpty()) {
+                %>
+                    endNode_<%=cid%>.put(<%=relationship.getIndex().getName()%>, databaseService_<%=cid%>.getVertices(<%=relationship.getIndex().getName()%>, <%=relationship.getIndex().getValue()%>).iterator().next());
+                <%
+                } else if (column.isNullable()) {
+                %>
+                    if (<%=incomingConnName%>.<%=column%> != null) {
+                        endNode_<%=cid%>.put(<%=relationship.getIndex().getName()%>, databaseService_<%=cid%>.getVertices(<%=relationship.getIndex().getName()%>, <%=incomingConnName%>.<%=column%>).iterator().next());
+                    }
+                <%
+                } else {
+                    %>
+                    endNode_<%=cid%>.put(<%=relationship.getIndex().getName()%>, databaseService_<%=cid%>.getVertices(<%=relationship.getIndex().getName()%>, <%=incomingConnName%>.<%=column%>).iterator().next());
+                    <%
+                }
+                %>
+                if (endNode_<%=cid%>.get(<%=relationship.getIndex().getName()%>) != null) {
+                <%
+                    if(dataAction.equals("UPDATE") || dataAction.equals("INSERT_OR_UPDATE")) {
+                %>
+                        java.util.Iterator<com.tinkerpop.blueprints.Edge> relationShipIterator_<%=cid%> = node_<%=cid%>.getEdges(com.tinkerpop.blueprints.Direction.BOTH, <%=relationship.getType()%>).iterator();
+                        while(relationShipIterator_<%=cid%>.hasNext()) {
+                            com.tinkerpop.blueprints.Edge relation_<%=cid%> = ((com.tinkerpop.blueprints.Edge) relationShipIterator_<%=cid%>.next());
+                            // Get the other node of relationship to compare relation adjacencies 
+                            <%
+                            switch (relationship.getDirection()) {
+                                case OUTGOING :
+                                    %>
+                                    com.tinkerpop.blueprints.Vertex otherNode_<%=cid%> = relation_<%=cid%>.getVertex(com.tinkerpop.blueprints.Direction.IN);
+                                    <%
+                                    break;
+                                case INCOMING :
+                                    %>
+                                    com.tinkerpop.blueprints.Vertex otherNode_<%=cid%> = relation_<%=cid%>.getVertex(com.tinkerpop.blueprints.Direction.OUT);
+                                    <%
+                                    break;
+                            }
+                            %>
+                            if(otherNode_<%=cid%>.equals(endNode_<%=cid%>.get(<%=relationship.getIndex().getName()%>))) {
+                                databaseService_<%=cid%>.removeEdge(relation_<%=cid%>);
+                            }
+                        }
+                    <%
+                    }
+                    switch (relationship.getDirection()) {
+                        case OUTGOING :
+                            %>
+                            databaseService_<%=cid%>.addEdge(null, node_<%=cid%>, endNode_<%=cid%>.get(<%=relationship.getIndex().getName()%>), <%=relationship.getType()%>);
+                            <%
+                            break;
+                        case INCOMING :
+                            %>
+                            databaseService_<%=cid%>.addEdge(null, endNode_<%=cid%>.get(<%=relationship.getIndex().getName()%>), node_<%=cid%>, <%=relationship.getType()%>);
+                            <%
+                            break;
+                    }
+                    %>
+
+                }
+            }
+            <%
+        }
     }
 
     // @CJ - All those are template functions.
