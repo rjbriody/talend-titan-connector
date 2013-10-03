@@ -1,22 +1,22 @@
 <%@ jet
-	imports="
-		org.talend.core.model.process.INode
-		org.talend.core.model.process.ElementParameterParser
-		org.talend.core.model.metadata.IMetadataTable
-		org.talend.core.model.metadata.IMetadataColumn
-		org.talend.core.model.process.IConnection
-		org.talend.core.model.process.IConnectionCategory
-		org.talend.designer.codegen.config.CodeGeneratorArgument
-		org.talend.core.model.metadata.types.JavaTypesManager
-		org.talend.core.model.metadata.types.JavaType
-		org.talend.designer.neo4j.data.Neo4jData
-		java.util.List
-    	java.util.Map
-    	java.util.ArrayList
-    	java.util.HashSet
-    	java.util.Arrays
-    	java.util.Set
-	"
+    imports="
+        org.talend.core.model.process.INode
+        org.talend.core.model.process.ElementParameterParser
+        org.talend.core.model.metadata.IMetadataTable
+        org.talend.core.model.metadata.IMetadataColumn
+        org.talend.core.model.process.IConnection
+        org.talend.core.model.process.IConnectionCategory
+        org.talend.designer.codegen.config.CodeGeneratorArgument
+        org.talend.core.model.metadata.types.JavaTypesManager
+        org.talend.core.model.metadata.types.JavaType
+        org.talend.designer.neo4j.data.Neo4jData
+        java.util.List
+        java.util.Map
+        java.util.ArrayList
+        java.util.HashSet
+        java.util.Arrays
+        java.util.Set
+    "
 %>
 <%
     CodeGeneratorArgument codeGenArgument = (CodeGeneratorArgument) argument;
@@ -30,85 +30,85 @@
     List<String> autoIndexedColumns = new ArrayList<String>();
     Set<String> indexNames = new HashSet();
     for (Map<String, String> value : values) {
-    	System.out.println("Value: " + value);
-    	boolean autoIndexed = Boolean.valueOf(value.get("AUTO_INDEXED"));
-   		if (autoIndexed) {
-   			autoIndexedColumns.add(value.get("SCHEMA_COLUMN"));
-   		}
+        System.out.println("Value: " + value);
+        boolean autoIndexed = Boolean.valueOf(value.get("AUTO_INDEXED"));
+        if (autoIndexed) {
+            autoIndexedColumns.add(value.get("SCHEMA_COLUMN"));
+        }
 
-   		String strIndexNames = value.get("INDEX_NAMES");
-   		if (strIndexNames != null && !strIndexNames.isEmpty()) {
-   			indexNames.addAll(Arrays.asList(strIndexNames.split(",")));
-   		}
+        String strIndexNames = value.get("INDEX_NAMES");
+        if (strIndexNames != null && !strIndexNames.isEmpty()) {
+            indexNames.addAll(Arrays.asList(strIndexNames.split(",")));
+        }
     }
 
     // Add update/delete index
     String action = (String) ElementParameterParser.getObjectValue(node, "__DATA_ACTION__");
     if (!action.equals("INSERT")) {
-    	indexNames.add((String) ElementParameterParser.getObjectValue(node, "__INDEX_NAME__"));
+        indexNames.add((String) ElementParameterParser.getObjectValue(node, "__INDEX_NAME__"));
     }
 
     if (useExistingConnection) {
-    	String connection = ElementParameterParser.getValue(node, "__CONNECTION__");
-    	String dbconn = "dbService_" + connection;
-    	%>
+        String connection = ElementParameterParser.getValue(node, "__CONNECTION__");
+        String dbconn = "dbService_" + connection;
+        %>
         // print component id
         System.out.println("<%=cid%>");
 
 
-		com.thinkaurelius.titan.core.TitanGraph databaseService_<%=cid%> = (com.thinkaurelius.titan.core.TitanGraph) globalMap.get("<%=dbconn%>");
-		<%
+        com.thinkaurelius.titan.core.TitanGraph databaseService_<%=cid%> = (com.thinkaurelius.titan.core.TitanGraph) globalMap.get("<%=dbconn%>");
+        <%
     } else {
-    	boolean remoteServer = "true".equalsIgnoreCase(ElementParameterParser.getValue(node, "__REMOTE_SERVER__"));
-    	if (remoteServer) {
-    		String serverUrl = ElementParameterParser.getValue(node, "__SERVER_URL__");
-    		%>
-    		org.apache.commons.configuration.Configuration conf = new org.apache.commons.configuration.BaseConfiguration();
-        	conf.setProperty("storage.backend", "embeddedcassandra");
-        	com.thinkaurelius.titan.core.TitanGraph databaseService_<%=cid%> = com.thinkaurelius.titan.core.TitanFactory.open(conf);
+        boolean remoteServer = "true".equalsIgnoreCase(ElementParameterParser.getValue(node, "__REMOTE_SERVER__"));
+        if (remoteServer) {
+            String serverUrl = ElementParameterParser.getValue(node, "__SERVER_URL__");
+            %>
+            org.apache.commons.configuration.Configuration conf = new org.apache.commons.configuration.BaseConfiguration();
+            conf.setProperty("storage.backend", "embeddedcassandra");
+            com.thinkaurelius.titan.core.TitanGraph databaseService_<%=cid%> = com.thinkaurelius.titan.core.TitanFactory.open(conf);
 
-    		<%
-    	} else {
-	    	String databasePath = ElementParameterParser.getValue(node, "__DATABASE_PATH__");
-			%>
-			org.apache.commons.configuration.Configuration conf = new org.apache.commons.configuration.BaseConfiguration();
-        	conf.setProperty("storage.backend", "embeddedcassandra");
-        	com.thinkaurelius.titan.core.TitanGraph databaseService_<%=cid%> = com.thinkaurelius.titan.core.TitanFactory.open(conf);
+            <%
+        } else {
+            String databasePath = ElementParameterParser.getValue(node, "__DATABASE_PATH__");
+            %>
+            org.apache.commons.configuration.Configuration conf = new org.apache.commons.configuration.BaseConfiguration();
+            conf.setProperty("storage.backend", "embeddedcassandra");
+            com.thinkaurelius.titan.core.TitanGraph databaseService_<%=cid%> = com.thinkaurelius.titan.core.TitanFactory.open(conf);
 
-			<%
-		}
+            <%
+        }
     }
     // Index configuration
     if (batchImport) {
 
-		// Titan Specific
-		String enableBatchLoading = ElementParameterParser.getValue(node, "__ENABLE_BATCH_LOADING__");
-		String storageBufferSize = ElementParameterParser.getValue(node, "__STORAGE_BUFFER_SIZE__");
-		String storageReadAttempts = ElementParameterParser.getValue(node, "__STORAGE_READ_ATTEMPTS__");
-		String storageWriteAttempts = ElementParameterParser.getValue(node, "__STORAGE_WRITE_ATTEMPTS__");
+        // Titan Specific
+        String enableBatchLoading = ElementParameterParser.getValue(node, "__ENABLE_BATCH_LOADING__");
+        String storageBufferSize = ElementParameterParser.getValue(node, "__STORAGE_BUFFER_SIZE__");
+        String storageReadAttempts = ElementParameterParser.getValue(node, "__STORAGE_READ_ATTEMPTS__");
+        String storageWriteAttempts = ElementParameterParser.getValue(node, "__STORAGE_WRITE_ATTEMPTS__");
 
-    	%>
-    	/*
-    	java.util.Map<String, String> importProperties_<%=cid%> = new java.util.HashMap<String, String>();
-		importProperties_<%=cid%>.put("storage.batch-loading", <%=enableBatchLoading%>);
-		importProperties_<%=cid%>.put("storage.buffer-size", <%=storageBufferSize%>);
-		importProperties_<%=cid%>.put("storage.read-attempts", <%=storageReadAttempts%>);
-		importProperties_<%=cid%>.put("storage.write-attempts", <%=storageWriteAttempts%>);
-	    */
+        %>
+        /*
+        java.util.Map<String, String> importProperties_<%=cid%> = new java.util.HashMap<String, String>();
+        importProperties_<%=cid%>.put("storage.batch-loading", <%=enableBatchLoading%>);
+        importProperties_<%=cid%>.put("storage.buffer-size", <%=storageBufferSize%>);
+        importProperties_<%=cid%>.put("storage.read-attempts", <%=storageReadAttempts%>);
+        importProperties_<%=cid%>.put("storage.write-attempts", <%=storageWriteAttempts%>);
+        */
 
-		com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph inserter_<%=cid%> = null;
-		if (databaseService_<%=cid%> instanceof com.thinkaurelius.titan.core.TitanGraph) {
-			com.thinkaurelius.titan.core.TitanGraph db_<%=cid%> = (com.thinkaurelius.titan.core.TitanGraph) databaseService_<%=cid%>;
-			//db_<%=cid%>.shutdown();
-			inserter_<%=cid%> = com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph(/* the graph */ db_<%=cid%>, /* id type */ VertexIDType.STRING, /* batchsize */ 1000);
-		}
-		<%
-	} else {
-		%>
-		java.util.Map<String, com.tinkerpop.blueprints.Index<com.tinkerpop.blueprints.Vertex>> indexNodeMap_<%=cid%> = new java.util.HashMap<String, com.tinkerpop.blueprints.Index<com.tinkerpop.blueprints.Vertex>>();
+        com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph inserter_<%=cid%> = null;
+        if (databaseService_<%=cid%> instanceof com.thinkaurelius.titan.core.TitanGraph) {
+            com.thinkaurelius.titan.core.TitanGraph db_<%=cid%> = (com.thinkaurelius.titan.core.TitanGraph) databaseService_<%=cid%>;
+            //db_<%=cid%>.shutdown();
+            inserter_<%=cid%> = com.tinkerpop.blueprints.util.wrappers.batch.BatchGraph(/* the graph */ db_<%=cid%>, /* id type */ VertexIDType.STRING, /* batchsize */ 1000);
+        }
+        <%
+    } else {
+        %>
+        java.util.Map<String, com.tinkerpop.blueprints.Index<com.tinkerpop.blueprints.Vertex>> indexNodeMap_<%=cid%> = new java.util.HashMap<String, com.tinkerpop.blueprints.Index<com.tinkerpop.blueprints.Vertex>>();
 
         // Retrieves the indexes for the Vertex element
-    	java.util.Set<String> indexes = ((com.tinkerpop.blueprints.KeyIndexableGraph) databaseService_<%=cid%>).getIndexedKeys(com.tinkerpop.blueprints.Vertex.class);
+        java.util.Set<String> indexes = ((com.tinkerpop.blueprints.KeyIndexableGraph) databaseService_<%=cid%>).getIndexedKeys(com.tinkerpop.blueprints.Vertex.class);
         <%
         for (String indexName : indexNames) {
             String indexNameCode = indexName.replaceAll("^\"|\"$", "");
@@ -118,16 +118,16 @@
             // index() returns the index manager
             // forNodes(String name) creates + retrieves the index called "name"
             //indexNodeMap_<%=cid%>.put(<%=indexName%>, databaseService_<%=cid%>.index().forNodes(<%=indexName%>));
-	    	// Test if it exists
-	    	if (!indexes.contains(<%=indexName%>)) {
-	    	    // If not create it
-	    	    ((com.tinkerpop.blueprints.KeyIndexableGraph) databaseService_<%=cid%>).createKeyIndex(<%=indexName%>, com.tinkerpop.blueprints.Vertex.class);
-	    	}
-	    	// Add the index to the index node map
-	    	//indexNodeMap_<%=cid%>.put(<%=indexName%>, index_<%=indexNameCode%>);
-	    	<%
-	    }
-	}
+            // Test if it exists
+            if (!indexes.contains(<%=indexName%>)) {
+                // If not create it
+                ((com.tinkerpop.blueprints.KeyIndexableGraph) databaseService_<%=cid%>).createKeyIndex(<%=indexName%>, com.tinkerpop.blueprints.Vertex.class);
+            }
+            // Add the index to the index node map
+            //indexNodeMap_<%=cid%>.put(<%=indexName%>, index_<%=indexNameCode%>);
+            <%
+        }
+    }
 %>
 
 // Titan automatically starts transactions
