@@ -52,6 +52,10 @@
     	String connection = ElementParameterParser.getValue(node, "__CONNECTION__");
     	String dbconn = "dbService_" + connection;
     	%>
+        // print component id
+        System.out.println("<%=cid%>");
+
+
 		com.thinkaurelius.titan.core.TitanGraph databaseService_<%=cid%> = (com.thinkaurelius.titan.core.TitanGraph) globalMap.get("<%=dbconn%>");
 		<%
     } else {
