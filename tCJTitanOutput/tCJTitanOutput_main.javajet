@@ -225,7 +225,7 @@ counter_<%=cid%>++;
 
 // Log Advancement during processing
 if (counter_<%=cid%> % 10000 == 0) {
-    System.out.format("Advancement: %d lines processed.", counter_<%=cid%>);
+    System.out.format("Advancement: %d lines processed. \n", counter_<%=cid%>);
 }
 
 // If batch size is reached, commit
